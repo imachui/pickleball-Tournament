@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PicklePro - International Tournament Manager & Live Scorer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #080d1a;
+      font-family: 'Inter', sans-serif;
+      color: #f1f5f9;
+    }
+    .font-display { font-family: 'Chakra Petch', sans-serif; }
+    .neon-lime { color: #ccff00; }
+    .bg-neon-lime { background-color: #ccff00; }
+    .border-neon-lime { border-color: #ccff00; }
+    .card-bg { background-color: #0f172a; }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  
+    /* ===== GLASS UI + PADDLE BG + FIRE ===== */
+    body{background:radial-gradient(1200px 700px at 15% 10%,#12304f 0%,transparent 60%),radial-gradient(900px 600px at 90% 90%,#3b1457 0%,transparent 60%),#060a16;}
+    #paddleBg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+    #paddleBg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,10,22,.45),rgba(6,10,22,.7))}
+    .paddle{position:absolute;width:clamp(80px,11vw,170px);opacity:.8;filter:drop-shadow(0 18px 30px rgba(0,0,0,.5));animation:floaty var(--d) ease-in-out var(--dl) infinite alternate}
+    .paddle svg{width:100%;height:auto;display:block}
+    @keyframes floaty{from{transform:translateY(-14px) rotate(var(--r))}to{transform:translateY(16px) rotate(calc(var(--r) + 6deg))}}
+    .glass-panel,header,.bg-slate-900,.bg-slate-800,.bg-slate-900\/90,.bg-slate-900\/60,.bg-slate-900\/40{
+      background:rgba(255,255,255,.07)!important;backdrop-filter:blur(20px) saturate(170%)!important;-webkit-backdrop-filter:blur(20px) saturate(170%)!important;
+      border-color:rgba(255,255,255,.16)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 8px 32px rgba(0,0,0,.35)}
+    .hover\:bg-slate-700:hover{background:rgba(255,255,255,.16)!important}
+    input,select,textarea{background:rgba(255,255,255,.08)!important;backdrop-filter:blur(10px);border-color:rgba(255,255,255,.2)!important;color:#fff}
+    option{background:#0f172a;color:#fff}
+    .border-slate-800,.border-slate-700,.border-slate-800\/80{border-color:rgba(255,255,255,.14)!important}
+    .bg-neon-lime{box-shadow:0 0 18px rgba(204,255,0,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+    #scoreModal{background:rgba(3,6,15,.55)!important}
+    .powered{position:relative;margin:1.2rem auto 1rem;display:flex;align-items:center;gap:.35rem;padding:.3rem .8rem;border-radius:999px;
+      background:rgba(255,255,255,.07);backdrop-filter:blur(20px);border:1px solid rgba(255,140,0,.45);animation:glow 1.6s ease-in-out infinite alternate}
+    @keyframes glow{from{box-shadow:0 0 14px rgba(255,100,0,.3)}to{box-shadow:0 0 34px rgba(255,160,0,.65)}}
+    .powered small{font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#cbd5e1}
+    .fire-text{position:relative;font:800 .95rem 'Chakra Petch',sans-serif;color:#fff3b0;letter-spacing:.04em;
+      text-shadow:0 -1px 3px #fff,0 -3px 8px #ffe14d,0 -6px 14px #ff9500,0 -10px 22px #ff4500,0 -16px 34px #d10000;animation:flicker .9s infinite alternate}
+    @keyframes flicker{0%{text-shadow:0 -1px 3px #fff,0 -3px 8px #ffe14d,0 -6px 14px #ff9500,0 -10px 22px #ff4500,0 -16px 34px #d10000}
+      50%{text-shadow:0 -2px 4px #fff,0 -5px 10px #ffd000,0 -9px 18px #ff7a00,0 -14px 28px #ff3000,0 -22px 40px #b00}
+      100%{text-shadow:0 -1px 3px #fff,0 -4px 9px #ffe14d,0 -7px 16px #ff8800,0 -12px 26px #ff3d00,0 -18px 38px #c00}}
+    .flame{display:inline-block;font-size:.75rem;animation:dance .5s ease-in-out infinite alternate;transform-origin:50% 100%}
+    @keyframes dance{from{transform:scale(1) rotate(-6deg)}to{transform:scale(1.25,1.4) rotate(6deg)}}
+    .ember{position:absolute;bottom:60%;width:4px;height:4px;border-radius:50%;background:#ffb300;box-shadow:0 0 8px #ff6a00;opacity:0;animation:rise 1.8s linear infinite}
+    @keyframes rise{0%{transform:translateY(0) scale(1);opacity:0}15%{opacity:1}100%{transform:translateY(-46px) translateX(var(--x)) scale(.2);opacity:0}}
+    @media (prefers-reduced-motion:reduce){.paddle,.fire-text,.flame,.ember,.powered{animation:none}}
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+<div id="paddleBg" aria-hidden="true"></div>
+
+
+  <!-- TOP BROADCAST NAVBAR -->
+  <header class="border-b border-slate-800 bg-slate-950/80 sticky top-0 z-40 backdrop-blur-md px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-neon-lime text-slate-950 font-black flex items-center justify-center text-xl shadow-lg shadow-lime-400/20 font-display">
+        PP
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs uppercase tracking-widest font-black text-slate-400">USA Pickleball / PPA Standard</span>
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        </div>
+        <h1 class="text-xl font-bold tracking-tight font-display text-white">PICKLE<span class="neon-lime">PRO</span> TOUR CONTROL</h1>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div id="quickStats" class="text-xs font-mono text-slate-400 border border-slate-800 px-3 py-1.5 rounded-lg bg-slate-900">
+        Status: <span class="text-slate-200 font-bold" id="statusText">Awaiting Draw</span>
+      </div>
+      <button onclick="resetTournament()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition">
+        Reset Tourney
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT PANEL: REGISTRATION & FORMAT (4 COLS) -->
+    <aside class="lg:col-span-4 space-y-5">
+      <div class="glass-panel p-5 rounded-2xl shadow-xl">
+        <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+          <span class="text-base">⚙️</span> Tournament Configuration
+        </h2>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Event Title</label>
+            <input id="tourneyName" type="text" value="International Pickleball Championship" 
+                   class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-neon-lime transition">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Division</label>
+              <select id="division" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-neon-lime">
+                <option>Men's Doubles Open 5.0</option>
+                <option>Women's Doubles Open</option>
+                <option>Mixed Doubles 4.5+</option>
+                <option>Men's Singles Pro</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Match Rules</label>
+              <select id="matchFormat" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-neon-lime">
+                <option value="single15">1 Game to 15 (Win by 2)</option>
+                <option value="bestof3">Best 2 of 3 to 11 (Win by 2)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <label class="text-xs font-bold uppercase tracking-wider text-slate-300">Player / Team Seeds</label>
+              <span class="text-[11px] text-slate-400">1 per line</span>
+            </div>
+            <textarea id="playerList" rows="8" placeholder="Ben Johns / Collin Johns&#10;Tyson McGuffin / James Ignatowich&#10;JW Johnson / Dylan Frazier&#10;Julian Arnold / Thomas Wilson"
+                      class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs focus:outline-none focus:border-neon-lime font-mono leading-relaxed text-slate-200"></textarea>
+          </div>
+
+          <button onclick="generateBracket()" class="w-full py-3 bg-neon-lime text-slate-950 font-extrabold uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-[0.98] transition shadow-lg shadow-lime-400/10 font-display">
+            ⚡ Seed & Generate Bracket
+          </button>
+        </div>
+      </div>
+
+      <!-- TOURNAMENT INFO CARD -->
+      <div class="glass-panel p-4 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-2">
+        <div class="flex items-center gap-2 text-slate-200 font-semibold">
+          <span>📖 Official Rules Applied:</span>
+        </div>
+        <ul class="list-disc list-inside space-y-1 text-[11px] leading-relaxed">
+          <li>Seeded brackets automatically assign <strong>BYEs</strong> to top seeds.</li>
+          <li>Live scoring enforces strict <strong>Win-by-2</strong> international rule.</li>
+          <li>Doubles service tracking (Server 1 & Server 2) with side-out rotation.</li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- RIGHT PANEL: LIVE BRACKET & MATCHES (8 COLS) -->
+    <section class="lg:col-span-8 flex flex-col gap-6">
+      
+      <!-- TOURNAMENT BANNER -->
+      <div id="headerBanner" class="glass-panel p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <span id="bannerDivision" class="text-xs font-bold uppercase tracking-widest text-lime-400">Main Draw</span>
+          <h2 id="bannerTitle" class="text-2xl md:text-3xl font-black font-display text-white mt-0.5">Official Tournament Draw</h2>
+          <p id="bannerRules" class="text-xs text-slate-400 mt-1 font-mono">1 Game to 15 (Win by 2)</p>
+        </div>
+        <div class="flex gap-2">
+          <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-right">
+            <span class="text-[10px] uppercase tracking-wider text-slate-400 block">Total Teams</span>
+            <span id="totalTeamsCount" class="text-lg font-bold font-mono text-white">0</span>
+          </div>
+          <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-right">
+            <span class="text-[10px] uppercase tracking-wider text-slate-400 block">Matches Played</span>
+            <span id="completedCount" class="text-lg font-bold font-mono text-neon-lime">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BRACKET ROUNDS DISPLAY -->
+      <div id="bracketView" class="space-y-6">
+        <div class="glass-panel p-16 rounded-2xl text-center text-slate-500">
+          <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-slate-800/80 flex items-center justify-center text-2xl">
+            🏓
+          </div>
+          <p class="text-sm font-semibold text-slate-400">No active matches found.</p>
+          <p class="text-xs mt-1">Enter your player or doubles roster on the left and generate your international draw.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <footer class="flex flex-col items-center px-4 text-center">
+    <div class="powered"><span class="flame">🔥</span><small>Powered by</small><span class="fire-text" id="fireText">imachui<i class="ember" style="left:8%;--x:-6px"></i><i class="ember" style="left:28%;--x:8px;animation-delay:.4s"></i><i class="ember" style="left:50%;--x:-4px;animation-delay:.9s"></i><i class="ember" style="left:70%;--x:10px;animation-delay:.2s"></i><i class="ember" style="left:90%;--x:-8px;animation-delay:.7s"></i></span><span class="flame">🔥</span></div>
+  </footer>
+
+  <!-- MODAL: PRO LIVE SCOREBOARD JUMBOTRON -->
+  <div id="scoreModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="glass-panel max-w-2xl w-full rounded-3xl border border-slate-700 shadow-2xl p-6 md:p-8 animate-in fade-in zoom-in duration-150">
+      
+      <!-- MODAL HEADER -->
+      <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-6">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="modalCourtTag" class="font-mono text-xs uppercase tracking-wider text-slate-400 font-bold">Court 1 • Main Arena</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="matchStatusBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-yellow-400/10 text-yellow-300 font-bold border border-yellow-400/20">
+            LIVE SCORING
+          </span>
+          <button onclick="closeScorer()" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+        </div>
+      </div>
+
+      <!-- CURRENT GAME INDICATOR -->
+      <div class="text-center mb-6">
+        <span id="modalGameLabel" class="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full">
+          Game 1 of 3
+        </span>
+        <div id="setHistoryPills" class="flex justify-center gap-2 mt-2"></div>
+      </div>
+
+      <!-- MAIN JUMBOTRON DIGITAL SCOREBOARD -->
+      <div class="grid grid-cols-2 gap-4 md:gap-6 mb-6">
+        
+        <!-- TEAM 1 BOX -->
+        <div id="team1Box" class="bg-slate-900/90 rounded-2xl p-5 border-2 border-slate-800 flex flex-col items-center relative transition">
+          <span id="servePill1" class="hidden absolute top-3 left-3 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-neon-lime text-slate-950">
+            SERVING • #1
+          </span>
+          <div class="text-center mt-3">
+            <h3 id="t1Name" class="font-extrabold text-base md:text-lg text-white line-clamp-1">Team Alpha</h3>
+            <span class="text-[11px] font-mono text-slate-400 uppercase tracking-widest">Seed 1</span>
+          </div>
+          <!-- HUGE SCORE DIGIT -->
+          <div id="t1Score" class="font-display font-black text-6xl md:text-7xl my-4 text-white">0</div>
+          
+          <!-- CONTROLS -->
+          <div class="flex gap-2 w-full">
+            <button onclick="updatePoints(1, -1)" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition">-1</button>
+            <button onclick="updatePoints(1, 1)" class="flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-base transition">+1 Point</button>
+          </div>
+        </div>
+
+        <!-- TEAM 2 BOX -->
+        <div id="team2Box" class="bg-slate-900/90 rounded-2xl p-5 border-2 border-slate-800 flex flex-col items-center relative transition">
+          <span id="servePill2" class="hidden absolute top-3 right-3 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-neon-lime text-slate-950">
+            SERVING • #1
+          </span>
+          <div class="text-center mt-3">
+            <h3 id="t2Name" class="font-extrabold text-base md:text-lg text-white line-clamp-1">Team Beta</h3>
+            <span class="text-[11px] font-mono text-slate-400 uppercase tracking-widest">Seed 2</span>
+          </div>
+          <!-- HUGE SCORE DIGIT -->
+          <div id="t2Score" class="font-display font-black text-6xl md:text-7xl my-4 text-white">0</div>
+          
+          <!-- CONTROLS -->
+          <div class="flex gap-2 w-full">
+            <button onclick="updatePoints(2, -1)" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition">-1</button>
+            <button onclick="updatePoints(2, 1)" class="flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-base transition">+1 Point</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SERVICE ROTATION & SIDE OUT TOGGLE -->
+      <div class="flex justify-between items-center p-3 rounded-xl bg-slate-900 border border-slate-800 mb-6">
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-slate-400 uppercase font-mono font-bold">Pickleball Service:</span>
+          <span id="servingStateBadge" class="text-xs font-bold text-neon-lime">Team 1 (Server 1)</span>
+        </div>
+        <button onclick="toggleSideOut()" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
+          🔄 Switch Server / Side-Out
+        </button>
+      </div>
+
+      <!-- ACTION BUTTON: COMPLETE GAME / MATCH -->
+      <button id="finishGameBtn" onclick="confirmSetWinner()" 
+              class="w-full py-3.5 bg-slate-800 text-slate-400 font-bold uppercase tracking-wider rounded-xl transition cursor-not-allowed">
+        Game In Progress (Need 11+ points, Win by 2)
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    // Premium paddle brand background (2026-2027)
+    (function(){
+      const B=[["SELKIRK","#ff5a5f","#7a0f1d"],["JOOLA","#22d3ee","#0b4f6c"],["CRBN","#a3e635","#14532d"],["ENGAGE","#fb923c","#7c2d12"],["PADDLETEK","#a78bfa","#3b1a7a"],["FRANKLIN","#60a5fa","#1e3a8a"],["GEARBOX","#f472b6","#831843"],["SIX ZERO","#facc15","#713f12"],["VATIC PRO","#34d399","#064e3b"],["PROKENNEX","#e879f9","#581c87"],["HEAD","#f87171","#450a0a"],["ONIX","#38bdf8","#0c4a6e"],["DIADEM","#fde047","#854d0e"],["RONBUS","#2dd4bf","#134e4a"]];
+      const P=[[2,4],[16,58],[30,8],[44,62],[58,2],[72,52],[88,10],[8,30],[84,38],[38,34],[62,30],[22,80],[52,82],[92,72]];
+      const bg=document.getElementById('paddleBg');
+      let defs='<svg width="0" height="0" style="position:absolute"><defs><pattern id="holes" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="4.5" cy="4.5" r="1.6" fill="rgba(0,0,0,.28)"/></pattern></defs></svg>';
+      bg.innerHTML=defs+B.map((b,i)=>{
+        const fs=Math.min(19,120/(b[0].length*.72)).toFixed(1),g='g'+i;
+        return `<div class="paddle" style="left:${P[i][0]}%;top:${P[i][1]}%;--r:${(i*29%50)-25}deg;--d:${5+i%5}s;--dl:-${i}s">
+        <svg viewBox="0 0 120 265"><defs><linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${b[1]}"/><stop offset="1" stop-color="${b[2]}"/></linearGradient></defs>
+        <rect x="52" y="150" width="16" height="104" rx="8" fill="#111827" stroke="rgba(255,255,255,.35)"/>
+        <path d="M30 140 L90 140 L68 168 L52 168Z" fill="url(#${g})"/>
+        <rect x="6" y="6" width="108" height="148" rx="50" fill="url(#${g})" stroke="rgba(255,255,255,.55)" stroke-width="2"/>
+        <rect x="6" y="6" width="108" height="148" rx="50" fill="url(#holes)"/>
+        <rect x="14" y="14" width="92" height="132" rx="42" fill="none" stroke="rgba(255,255,255,.35)"/>
+        <path d="M18 40 Q30 12 66 12" stroke="rgba(255,255,255,.6)" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <text x="60" y="82" transform="rotate(-90 60 80)" text-anchor="middle" dominant-baseline="middle" font-family="Chakra Petch,sans-serif" font-weight="800" font-size="${fs}" letter-spacing="2" fill="#fff" fill-opacity=".92">${b[0]}</text></svg></div>`}).join('');
+    })();
+    // State Store
+    let tourney = {
+      title: '',
+      division: '',
+      matchFormat: 'bestof3',
+      teams: [],
+      rounds: [],
+      activeMatch: null,
+      matchesFinished: 0
+    };
+
+    // Live Scorer In-memory State
+    let liveState = {
+      roundIdx: 0,
+      matchIdx: 0,
+      p1Points: 0,
+      p2Points: 0,
+      p1Sets: 0,
+      p2Sets: 0,
+      setHistory: [],
+      serverTeam: 1, // 1 or 2
+      serverNumber: 1, // 1 or 2
+      targetPoints: 11,
+      maxSetsToWin: 2
+    };
+
+    function generateBracket() {
+      const name = document.getElementById('tourneyName').value.trim() || 'Championship';
+      const division = document.getElementById('division').value;
+      const matchFormat = document.getElementById('matchFormat').value;
+      const raw = document.getElementById('playerList').value.trim().split('\n');
+      const teams = raw.map(t => t.trim()).filter(t => t.length > 0);
+
+      if (teams.length < 2) {
+        alert("Please enter at least 2 teams or players.");
+        return;
+      }
+
+      tourney.title = name;
+      tourney.division = division;
+      tourney.matchFormat = matchFormat;
+      tourney.teams = teams;
+      tourney.matchesFinished = 0;
+
+      // Update Banner
+      document.getElementById('bannerTitle').innerText = name;
+      document.getElementById('bannerDivision').innerText = division;
+      document.getElementById('bannerRules').innerText = matchFormat === 'bestof3' ? 'Best 2 of 3 Games to 11 (Win by 2)' : '1 Game to 15 (Win by 2)';
+      document.getElementById('statusText').innerText = 'Tournament Active';
+      document.getElementById('totalTeamsCount').innerText = teams.length;
+      document.getElementById('completedCount').innerText = '0';
+
+      // Power of 2 logic with Byes (Standard USA Pickleball seeding)
+      let bracketSize = 2;
+      while (bracketSize < teams.length) {
+        bracketSize *= 2;
+      }
+
+      let draw = [...teams];
+      while (draw.length < bracketSize) {
+        draw.push("BYE");
+      }
+
+      tourney.rounds = [];
+      let r1Matches = [];
+      let courtIndex = 1;
+
+      for (let i = 0; i < bracketSize; i += 2) {
+        let t1 = draw[i];
+        let t2 = draw[i + 1];
+        let isBye = (t1 === "BYE" || t2 === "BYE");
+        let winner = null;
+        let sets = [];
+
+        if (t2 === "BYE") { winner = t1; sets = ['W-BYE']; }
+        else if (t1 === "BYE") { winner = t2; sets = ['W-BYE']; }
+
+        r1Matches.push({
+          id: `M1-${(i/2) + 1}`,
+          court: `Court ${courtIndex++}`,
+          team1: t1,
+          team2: t2,
+          winner: winner,
+          setsSummary: sets,
+          status: isBye ? 'COMPLETED' : 'READY',
+          p1Sets: winner === t1 ? 1 : 0,
+          p2Sets: winner === t2 ? 1 : 0
+        });
+      }
+
+      tourney.rounds.push({
+        title: getRoundTitle(bracketSize),
+        matches: r1Matches
+      });
+
+      renderBracket();
+    }
+
+    function getRoundTitle(count) {
+      if (count === 2) return "Gold Medal Final";
+      if (count === 4) return "Semifinals";
+      if (count === 8) return "Quarterfinals";
+      return `Round of ${count}`;
+    }
+
+    function renderBracket() {
+      const container = document.getElementById('bracketView');
+      container.innerHTML = '';
+
+      tourney.rounds.forEach((round, rIdx) => {
+        const roundCard = document.createElement('div');
+        roundCard.className = "space-y-3";
+
+        const titleHeader = document.createElement('div');
+        titleHeader.className = "flex items-center justify-between pb-2 border-b border-slate-800";
+        titleHeader.innerHTML = `
+          <h3 class="text-sm font-extrabold font-display uppercase tracking-wider text-neon-lime flex items-center gap-2">
+            <span>●</span> ${round.title}
+          </h3>
+          <span class="text-xs font-mono text-slate-400">${round.matches.length} Matches</span>
+        `;
+        roundCard.appendChild(titleHeader);
+
+        const grid = document.createElement('div');
+        grid.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
+
+        round.matches.forEach((m, mIdx) => {
+          const isBye = m.team1 === "BYE" || m.team2 === "BYE";
+          const isDone = m.winner !== null;
+
+          const card = document.createElement('div');
+          card.className = `p-4 rounded-2xl border transition ${isDone ? 'bg-slate-900/40 border-slate-800' : 'glass-panel border-slate-700/60 hover:border-slate-500'}`;
+
+          let scoreBadge = '';
+          if (m.setsSummary.length > 0) {
+            scoreBadge = `<div class="flex gap-1.5">${m.setsSummary.map(s => `<span class="px-2 py-0.5 rounded bg-slate-800 text-[11px] font-mono font-bold text-slate-300 border border-slate-700">${s}</span>`).join('')}</div>`;
+          }
+
+          card.innerHTML = `
+            <div class="flex justify-between items-center mb-3 text-[11px] font-mono text-slate-400">
+              <span class="font-bold text-slate-300">${m.court}</span>
+              ${isDone ? `<span class="text-emerald-400 font-bold uppercase tracking-wider">● Finished</span>` : `<span class="text-yellow-400 font-bold uppercase tracking-wider">Scheduled</span>`}
+            </div>
+
+            <!-- TEAMS CONTAINER -->
+            <div class="space-y-2 mb-3">
+              <!-- Team 1 -->
+              <div class="flex justify-between items-center p-2.5 rounded-xl ${m.winner === m.team1 && isDone ? 'bg-emerald-500/10 border border-emerald-500/40 text-emerald-300' : 'bg-slate-900/60 text-slate-200'}">
+                <span class="text-xs font-bold ${m.team1 === 'BYE' ? 'text-slate-500 italic' : ''}">${m.team1}</span>
+                ${m.winner === m.team1 ? '<span class="text-xs font-bold text-emerald-400 font-mono">WINNER</span>' : ''}
+              </div>
+
+              <!-- Team 2 -->
+              <div class="flex justify-between items-center p-2.5 rounded-xl ${m.winner === m.team2 && isDone ? 'bg-emerald-500/10 border border-emerald-500/40 text-emerald-300' : 'bg-slate-900/60 text-slate-200'}">
+                <span class="text-xs font-bold ${m.team2 === 'BYE' ? 'text-slate-500 italic' : ''}">${m.team2}</span>
+                ${m.winner === m.team2 ? '<span class="text-xs font-bold text-emerald-400 font-mono">WINNER</span>' : ''}
+              </div>
+            </div>
+
+            <!-- SCORE ROW OR ACTION -->
+            <div class="flex justify-between items-center pt-2 border-t border-slate-800/80">
+              ${scoreBadge || '<span class="text-[11px] text-slate-500 font-mono">No score yet</span>'}
+              ${!isDone && !isBye ? `
+                <button onclick="launchScorer(${rIdx}, ${mIdx})" class="px-3 py-1.5 rounded-lg bg-neon-lime hover:brightness-110 text-slate-950 text-xs font-extrabold uppercase tracking-wider font-display flex items-center gap-1.5 transition">
+                  <span>⚡</span> Live Scorer
+                </button>
+              ` : ''}
+            </div>
+          `;
+
+          grid.appendChild(card);
+        });
+
+        roundCard.appendChild(grid);
+        container.appendChild(roundCard);
+      });
+
+      // Check Tournament Champion
+      const finalRound = tourney.rounds[tourney.rounds.length - 1];
+      if (finalRound && finalRound.matches.length === 1 && finalRound.matches[0].winner) {
+        showTrophyCelebration(finalRound.matches[0].winner);
+      }
+    }
+
+    // OPEN LIVE SCOREBOARD
+    function launchScorer(rIdx, mIdx) {
+      const match = tourney.rounds[rIdx].matches[mIdx];
+      liveState.roundIdx = rIdx;
+      liveState.matchIdx = mIdx;
+      liveState.p1Points = 0;
+      liveState.p2Points = 0;
+      liveState.p1Sets = 0;
+      liveState.p2Sets = 0;
+      liveState.setHistory = [];
+      liveState.serverTeam = 1;
+      liveState.serverNumber = 1;
+
+      // Rules Setup
+      liveState.targetPoints = tourney.matchFormat === 'bestof3' ? 11 : 15;
+      liveState.maxSetsToWin = tourney.matchFormat === 'bestof3' ? 2 : 1;
+
+      document.getElementById('t1Name').innerText = match.team1;
+      document.getElementById('t2Name').innerText = match.team2;
+      document.getElementById('modalCourtTag').innerText = `${match.court} • Official Draw`;
+
+      updateScoreDisplay();
+      document.getElementById('scoreModal').classList.remove('hidden');
+    }
+
+    function closeScorer() {
+      document.getElementById('scoreModal').classList.add('hidden');
+    }
+
+    function updatePoints(team, delta) {
+      if (team === 1) {
+        liveState.p1Points = Math.max(0, liveState.p1Points + delta);
+      } else {
+        liveState.p2Points = Math.max(0, liveState.p2Points + delta);
+      }
+      updateScoreDisplay();
+    }
+
+    function toggleSideOut() {
+      // Rotate Server 1 -> Server 2 -> Side Out
+      if (liveState.serverNumber === 1) {
+        liveState.serverNumber = 2;
+      } else {
+        liveState.serverNumber = 1;
+        liveState.serverTeam = liveState.serverTeam === 1 ? 2 : 1;
+      }
+      updateScoreDisplay();
+    }
+
+    function updateScoreDisplay() {
+      document.getElementById('t1Score').innerText = liveState.p1Points;
+      document.getElementById('t2Score').innerText = liveState.p2Points;
+
+      // Serving badges
+      const s1 = document.getElementById('servePill1');
+      const s2 = document.getElementById('servePill2');
+      if (liveState.serverTeam === 1) {
+        s1.classList.remove('hidden');
+        s1.innerText = `SERVING • #${liveState.serverNumber}`;
+        s2.classList.add('hidden');
+      } else {
+        s2.classList.remove('hidden');
+        s2.innerText = `SERVING • #${liveState.serverNumber}`;
+        s1.classList.add('hidden');
+      }
+
+      document.getElementById('servingStateBadge').innerText = 
+        `Team ${liveState.serverTeam} (Server ${liveState.serverNumber})`;
+
+      // Sets History display
+      const currentSetNum = liveState.p1Sets + liveState.p2Sets + 1;
+      document.getElementById('modalGameLabel').innerText = `Game ${currentSetNum} of ${liveState.maxSetsToWin === 1 ? 1 : 3}`;
+
+      const historyBox = document.getElementById('setHistoryPills');
+      historyBox.innerHTML = liveState.setHistory.map((s, idx) => `
+        <span class="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 font-mono font-bold border border-slate-700">
+          Game ${idx+1}: ${s}
+        </span>
+      `).join('');
+
+      // Check Win Condition (Win by 2 rule)
+      const p1 = liveState.p1Points;
+      const p2 = liveState.p2Points;
+      const target = liveState.targetPoints;
+      const finishBtn = document.getElementById('finishGameBtn');
+
+      const isP1Win = p1 >= target && (p1 - p2 >= 2);
+      const isP2Win = p2 >= target && (p2 - p1 >= 2);
+
+      if (isP1Win || isP2Win) {
+        const winnerName = isP1Win ? document.getElementById('t1Name').innerText : document.getElementById('t2Name').innerText;
+        finishBtn.className = "w-full py-3.5 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black uppercase tracking-wider rounded-xl transition cursor-pointer font-display shadow-lg shadow-emerald-400/20";
+        finishBtn.innerText = `✓ Confirm Game Win (${winnerName})`;
+        finishBtn.disabled = false;
+      } else {
+        finishBtn.className = "w-full py-3.5 bg-slate-800 text-slate-500 font-bold uppercase tracking-wider rounded-xl transition cursor-not-allowed";
+        finishBtn.innerText = `Game In Progress (${p1}-${p2} • Must Win by 2)`;
+        finishBtn.disabled = true;
+      }
+    }
+
+    function confirmSetWinner() {
+      const p1 = liveState.p1Points;
+      const p2 = liveState.p2Points;
+      
+      const gameScoreString = `${p1}-${p2}`;
+      liveState.setHistory.push(gameScoreString);
+
+      if (p1 > p2) {
+        liveState.p1Sets++;
+      } else {
+        liveState.p2Sets++;
+      }
+
+      // Check if Match is completely finished
+      if (liveState.p1Sets === liveState.maxSetsToWin || liveState.p2Sets === liveState.maxSetsToWin) {
+        finalizeMatch();
+      } else {
+        // Reset points for Next Game / Set
+        liveState.p1Points = 0;
+        liveState.p2Points = 0;
+        liveState.serverTeam = 1;
+        liveState.serverNumber = 1;
+        updateScoreDisplay();
+      }
+    }
+
+    function finalizeMatch() {
+      const match = tourney.rounds[liveState.roundIdx].matches[liveState.matchIdx];
+      const winnerName = liveState.p1Sets > liveState.p2Sets ? match.team1 : match.team2;
+      
+      match.winner = winnerName;
+      match.setsSummary = [...liveState.setHistory];
+      match.status = 'COMPLETED';
+
+      tourney.matchesFinished++;
+      document.getElementById('completedCount').innerText = tourney.matchesFinished;
+
+      closeScorer();
+
+      // Check if current round is complete to generate next round
+      checkAndAdvanceRound(liveState.roundIdx);
+      renderBracket();
+    }
+
+    function checkAndAdvanceRound(rIdx) {
+      const currentMatches = tourney.rounds[rIdx].matches;
+      const allDone = currentMatches.every(m => m.winner !== null);
+
+      if (allDone && currentMatches.length > 1) {
+        let nextMatches = [];
+        let courtIdx = 1;
+
+        for (let i = 0; i < currentMatches.length; i += 2) {
+          nextMatches.push({
+            id: `M${rIdx + 2}-${(i/2) + 1}`,
+            court: `Championship Court ${courtIdx++}`,
+            team1: currentMatches[i].winner,
+            team2: currentMatches[i + 1].winner,
+            winner: null,
+            setsSummary: [],
+            status: 'READY'
+          });
+        }
+
+        tourney.rounds.push({
+          title: getRoundTitle(nextMatches.length * 2),
+          matches: nextMatches
+        });
+      }
+    }
+
+    function showTrophyCelebration(winner) {
+      const container = document.getElementById('bracketView');
+      const banner = document.createElement('div');
+      banner.className = "bg-gradient-to-r from-yellow-500 via-amber-400 to-yellow-600 text-slate-950 p-8 rounded-3xl text-center shadow-2xl border-4 border-yellow-300/40 my-4 animate-in zoom-in duration-300";
+      banner.innerHTML = `
+        <div class="text-5xl mb-2">🏆</div>
+        <span class="text-xs font-black uppercase tracking-widest font-mono bg-slate-950 text-yellow-400 px-3 py-1 rounded-full">Official Champion</span>
+        <h2 class="text-3xl md:text-5xl font-black font-display uppercase tracking-tight mt-3 text-slate-950">${winner}</h2>
+        <p class="text-xs font-extrabold uppercase tracking-wider text-slate-900 mt-2">Winner of the ${tourney.title} (${tourney.division})</p>
+      `;
+      container.prepend(banner);
+    }
+
+    function resetTournament() {
+      if (confirm("Reset current tournament draw and all scores?")) {
+        location.reload();
+      }
+    }
+  </script>
+</body>
+</html>
