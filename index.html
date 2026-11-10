@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PicklePro - International Tournament Manager & Live Scorer</title>
+  <title>PicklePro Tournament - Live Courts, Matches & Standings</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,231 +55,45 @@
     .ember{position:absolute;bottom:60%;width:4px;height:4px;border-radius:50%;background:#ffb300;box-shadow:0 0 8px #ff6a00;opacity:0;animation:rise 1.8s linear infinite}
     @keyframes rise{0%{transform:translateY(0) scale(1);opacity:0}15%{opacity:1}100%{transform:translateY(-46px) translateX(var(--x)) scale(.2);opacity:0}}
     @media (prefers-reduced-motion:reduce){.paddle,.fire-text,.flame,.ember,.powered{animation:none}}
+      select,input,textarea{border:1px solid rgba(255,255,255,.2)}
+    nav button{padding:.7rem 0;border-radius:.9rem;color:#cbd5e1}
+    nav button.on{color:#ccff00;background:rgba(204,255,0,.12)}
+    .bg-slate-900{background:rgba(255,255,255,.07)!important}
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen">
 <div id="paddleBg" aria-hidden="true"></div>
-
-
-  <!-- TOP BROADCAST NAVBAR -->
-  <header class="border-b border-slate-800 bg-slate-950/80 sticky top-0 z-40 backdrop-blur-md px-6 py-4 flex flex-wrap justify-between items-center gap-4">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-neon-lime text-slate-950 font-black flex items-center justify-center text-xl shadow-lg shadow-lime-400/20 font-display">
-        PP
-      </div>
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs uppercase tracking-widest font-black text-slate-400">USA Pickleball / PPA Standard</span>
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        </div>
-        <h1 class="text-xl font-bold tracking-tight font-display text-white">PICKLE<span class="neon-lime">PRO</span> TOUR CONTROL</h1>
-      </div>
-    </div>
-    <div class="flex items-center gap-3">
-      <div id="quickStats" class="text-xs font-mono text-slate-400 border border-slate-800 px-3 py-1.5 rounded-lg bg-slate-900">
-        Status: <span class="text-slate-200 font-bold" id="statusText">Awaiting Draw</span>
-      </div>
-      <button onclick="resetTournament()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition">
-        Reset Tourney
-      </button>
-    </div>
-  </header>
-
-  <!-- MAIN DASHBOARD CONTENT -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-    <!-- LEFT PANEL: REGISTRATION & FORMAT (4 COLS) -->
-    <aside class="lg:col-span-4 space-y-5">
-      <div class="glass-panel p-5 rounded-2xl shadow-xl">
-        <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
-          <span class="text-base">⚙️</span> Tournament Configuration
-        </h2>
-
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Event Title</label>
-            <input id="tourneyName" type="text" value="International Pickleball Championship" 
-                   class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-neon-lime transition">
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Division</label>
-              <select id="division" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-neon-lime">
-                <option>Men's Doubles Open 5.0</option>
-                <option>Women's Doubles Open</option>
-                <option>Mixed Doubles 4.5+</option>
-                <option>Men's Singles Pro</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Match Rules</label>
-              <select id="matchFormat" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-neon-lime">
-                <option value="single15">1 Game to 15 (Win by 2)</option>
-                <option value="bestof3">Best 2 of 3 to 11 (Win by 2)</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <div class="flex justify-between items-center mb-1.5">
-              <label class="text-xs font-bold uppercase tracking-wider text-slate-300">Player / Team Seeds</label>
-              <span class="text-[11px] text-slate-400">1 per line</span>
-            </div>
-            <textarea id="playerList" rows="8" placeholder="Ben Johns / Collin Johns&#10;Tyson McGuffin / James Ignatowich&#10;JW Johnson / Dylan Frazier&#10;Julian Arnold / Thomas Wilson"
-                      class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs focus:outline-none focus:border-neon-lime font-mono leading-relaxed text-slate-200"></textarea>
-          </div>
-
-          <button onclick="generateBracket()" class="w-full py-3 bg-neon-lime text-slate-950 font-extrabold uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-[0.98] transition shadow-lg shadow-lime-400/10 font-display">
-            ⚡ Seed & Generate Bracket
-          </button>
-        </div>
-      </div>
-
-      <!-- TOURNAMENT INFO CARD -->
-      <div class="glass-panel p-4 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-2">
-        <div class="flex items-center gap-2 text-slate-200 font-semibold">
-          <span>📖 Official Rules Applied:</span>
-        </div>
-        <ul class="list-disc list-inside space-y-1 text-[11px] leading-relaxed">
-          <li>Seeded brackets automatically assign <strong>BYEs</strong> to top seeds.</li>
-          <li>Live scoring enforces strict <strong>Win-by-2</strong> international rule.</li>
-          <li>Doubles service tracking (Server 1 & Server 2) with side-out rotation.</li>
-        </ul>
-      </div>
-    </aside>
-
-    <!-- RIGHT PANEL: LIVE BRACKET & MATCHES (8 COLS) -->
-    <section class="lg:col-span-8 flex flex-col gap-6">
-      
-      <!-- TOURNAMENT BANNER -->
-      <div id="headerBanner" class="glass-panel p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <span id="bannerDivision" class="text-xs font-bold uppercase tracking-widest text-lime-400">Main Draw</span>
-          <h2 id="bannerTitle" class="text-2xl md:text-3xl font-black font-display text-white mt-0.5">Official Tournament Draw</h2>
-          <p id="bannerRules" class="text-xs text-slate-400 mt-1 font-mono">1 Game to 15 (Win by 2)</p>
-        </div>
-        <div class="flex gap-2">
-          <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-right">
-            <span class="text-[10px] uppercase tracking-wider text-slate-400 block">Total Teams</span>
-            <span id="totalTeamsCount" class="text-lg font-bold font-mono text-white">0</span>
-          </div>
-          <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-right">
-            <span class="text-[10px] uppercase tracking-wider text-slate-400 block">Matches Played</span>
-            <span id="completedCount" class="text-lg font-bold font-mono text-neon-lime">0</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- BRACKET ROUNDS DISPLAY -->
-      <div id="bracketView" class="space-y-6">
-        <div class="glass-panel p-16 rounded-2xl text-center text-slate-500">
-          <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-slate-800/80 flex items-center justify-center text-2xl">
-            🏓
-          </div>
-          <p class="text-sm font-semibold text-slate-400">No active matches found.</p>
-          <p class="text-xs mt-1">Enter your player or doubles roster on the left and generate your international draw.</p>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-
-  <footer class="flex flex-col items-center px-4 text-center">
-    <div class="powered"><span class="flame">🔥</span><small>Powered by</small><span class="fire-text" id="fireText">imachui<i class="ember" style="left:8%;--x:-6px"></i><i class="ember" style="left:28%;--x:8px;animation-delay:.4s"></i><i class="ember" style="left:50%;--x:-4px;animation-delay:.9s"></i><i class="ember" style="left:70%;--x:10px;animation-delay:.2s"></i><i class="ember" style="left:90%;--x:-8px;animation-delay:.7s"></i></span><span class="flame">🔥</span></div>
-  </footer>
-
-  <!-- MODAL: PRO LIVE SCOREBOARD JUMBOTRON -->
-  <div id="scoreModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-4">
-    <div class="glass-panel max-w-2xl w-full rounded-3xl border border-slate-700 shadow-2xl p-6 md:p-8 animate-in fade-in zoom-in duration-150">
-      
-      <!-- MODAL HEADER -->
-      <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-6">
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span id="modalCourtTag" class="font-mono text-xs uppercase tracking-wider text-slate-400 font-bold">Court 1 • Main Arena</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span id="matchStatusBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-yellow-400/10 text-yellow-300 font-bold border border-yellow-400/20">
-            LIVE SCORING
-          </span>
-          <button onclick="closeScorer()" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
-        </div>
-      </div>
-
-      <!-- CURRENT GAME INDICATOR -->
-      <div class="text-center mb-6">
-        <span id="modalGameLabel" class="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full">
-          Game 1 of 3
-        </span>
-        <div id="setHistoryPills" class="flex justify-center gap-2 mt-2"></div>
-      </div>
-
-      <!-- MAIN JUMBOTRON DIGITAL SCOREBOARD -->
-      <div class="grid grid-cols-2 gap-4 md:gap-6 mb-6">
-        
-        <!-- TEAM 1 BOX -->
-        <div id="team1Box" class="bg-slate-900/90 rounded-2xl p-5 border-2 border-slate-800 flex flex-col items-center relative transition">
-          <span id="servePill1" class="hidden absolute top-3 left-3 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-neon-lime text-slate-950">
-            SERVING • #1
-          </span>
-          <div class="text-center mt-3">
-            <h3 id="t1Name" class="font-extrabold text-base md:text-lg text-white line-clamp-1">Team Alpha</h3>
-            <span class="text-[11px] font-mono text-slate-400 uppercase tracking-widest">Seed 1</span>
-          </div>
-          <!-- HUGE SCORE DIGIT -->
-          <div id="t1Score" class="font-display font-black text-6xl md:text-7xl my-4 text-white">0</div>
-          
-          <!-- CONTROLS -->
-          <div class="flex gap-2 w-full">
-            <button onclick="updatePoints(1, -1)" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition">-1</button>
-            <button onclick="updatePoints(1, 1)" class="flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-base transition">+1 Point</button>
-          </div>
-        </div>
-
-        <!-- TEAM 2 BOX -->
-        <div id="team2Box" class="bg-slate-900/90 rounded-2xl p-5 border-2 border-slate-800 flex flex-col items-center relative transition">
-          <span id="servePill2" class="hidden absolute top-3 right-3 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-neon-lime text-slate-950">
-            SERVING • #1
-          </span>
-          <div class="text-center mt-3">
-            <h3 id="t2Name" class="font-extrabold text-base md:text-lg text-white line-clamp-1">Team Beta</h3>
-            <span class="text-[11px] font-mono text-slate-400 uppercase tracking-widest">Seed 2</span>
-          </div>
-          <!-- HUGE SCORE DIGIT -->
-          <div id="t2Score" class="font-display font-black text-6xl md:text-7xl my-4 text-white">0</div>
-          
-          <!-- CONTROLS -->
-          <div class="flex gap-2 w-full">
-            <button onclick="updatePoints(2, -1)" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition">-1</button>
-            <button onclick="updatePoints(2, 1)" class="flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-base transition">+1 Point</button>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- SERVICE ROTATION & SIDE OUT TOGGLE -->
-      <div class="flex justify-between items-center p-3 rounded-xl bg-slate-900 border border-slate-800 mb-6">
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-slate-400 uppercase font-mono font-bold">Pickleball Service:</span>
-          <span id="servingStateBadge" class="text-xs font-bold text-neon-lime">Team 1 (Server 1)</span>
-        </div>
-        <button onclick="toggleSideOut()" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
-          🔄 Switch Server / Side-Out
-        </button>
-      </div>
-
-      <!-- ACTION BUTTON: COMPLETE GAME / MATCH -->
-      <button id="finishGameBtn" onclick="confirmSetWinner()" 
-              class="w-full py-3.5 bg-slate-800 text-slate-400 font-bold uppercase tracking-wider rounded-xl transition cursor-not-allowed">
-        Game In Progress (Need 11+ points, Win by 2)
-      </button>
-
-    </div>
+<div class="max-w-2xl mx-auto w-full px-4 pt-5 pb-32">
+  <div class="flex justify-between items-start gap-3">
+    <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-neon-lime text-slate-950 font-black flex items-center justify-center font-display">PP</div><span class="text-sm font-display font-bold">PICKLE<span class="neon-lime">PRO</span></span></div>
+    <div id="hs" class="text-[11px] font-mono text-slate-400 text-right"></div>
   </div>
-
-  <script>
+  <h1 id="hn" class="font-display font-extrabold text-2xl sm:text-3xl mt-4 leading-tight"></h1>
+  <p id="hv" class="text-xs text-slate-400 mt-1"></p>
+  <div class="grid grid-cols-5 gap-2 mt-4 items-center">
+    <label class="col-span-2 text-[11px] font-mono tracking-widest neon-lime">VIEW CATEGORY</label>
+    <select id="cs" onchange="S.cat=this.value;render()" class="col-span-3 rounded-xl px-3 py-2 text-sm border"></select>
+  </div>
+  <div class="mt-4 flex gap-2">
+    <input id="q" oninput="S.q=this.value.trim();render()" placeholder="Find my games: player or team name" class="flex-1 rounded-xl px-3 py-2 text-sm border">
+  </div>
+  <div id="view" class="mt-4"></div>
+  <footer class="flex justify-center"><div class="powered"><span class="flame">🔥</span><small>Powered by</small><span class="fire-text">imachui<i class="ember" style="left:8%;--x:-6px"></i><i class="ember" style="left:35%;--x:8px;animation-delay:.4s"></i><i class="ember" style="left:62%;--x:-4px;animation-delay:.9s"></i><i class="ember" style="left:90%;--x:-8px;animation-delay:.7s"></i></span><span class="flame">🔥</span></div></footer>
+</div>
+<nav class="fixed bottom-0 inset-x-0 z-40 bg-slate-900 border-t border-slate-800 grid grid-cols-5 text-xs font-semibold px-2 py-2 gap-1" style="padding-bottom:max(.5rem,env(safe-area-inset-bottom))">
+  <button data-t="courts" onclick="go('courts')">Courts</button><button data-t="matches" onclick="go('matches')">Matches</button><button data-t="stand" onclick="go('stand')">Standings</button><button data-t="medal" onclick="go('medal')">Medal</button><button data-t="setup" onclick="go('setup')">⚙ Setup</button>
+</nav>
+<div id="sm" style="display:none" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md items-center justify-center p-4">
+  <div class="glass-panel w-full max-w-md rounded-3xl p-5">
+    <div class="flex justify-between text-[11px] font-mono text-slate-400 mb-3"><span id="sT"></span><button onclick="closeS()" class="text-lg leading-none">✕</button></div>
+    <div class="grid grid-cols-2 gap-3 text-center">
+      <div><div id="sNa" class="font-bold text-sm min-h-[2.5rem]"></div><div id="sA" class="font-display font-black text-6xl my-2">0</div><div class="flex gap-2"><button onclick="pt('a',-1)" class="flex-1 py-2 rounded-xl bg-slate-800">-1</button><button onclick="pt('a',1)" class="flex-[2] py-2 rounded-xl bg-emerald-500 text-slate-950 font-black">+1</button></div></div>
+      <div><div id="sNb" class="font-bold text-sm min-h-[2.5rem]"></div><div id="sB" class="font-display font-black text-6xl my-2">0</div><div class="flex gap-2"><button onclick="pt('b',-1)" class="flex-1 py-2 rounded-xl bg-slate-800">-1</button><button onclick="pt('b',1)" class="flex-[2] py-2 rounded-xl bg-emerald-500 text-slate-950 font-black">+1</button></div></div>
+    </div>
+    <button id="sF" onclick="fin()" class="w-full mt-4 py-3 rounded-xl font-extrabold uppercase"></button>
+  </div>
+</div>
+<script>
     // Premium paddle brand background (2026-2027)
     (function(){
       const B=[["SELKIRK","#ff5a5f","#7a0f1d"],["JOOLA","#22d3ee","#0b4f6c"],["CRBN","#a3e635","#14532d"],["ENGAGE","#fb923c","#7c2d12"],["PADDLETEK","#a78bfa","#3b1a7a"],["FRANKLIN","#60a5fa","#1e3a8a"],["GEARBOX","#f472b6","#831843"],["SIX ZERO","#facc15","#713f12"],["VATIC PRO","#34d399","#064e3b"],["PROKENNEX","#e879f9","#581c87"],["HEAD","#f87171","#450a0a"],["ONIX","#38bdf8","#0c4a6e"],["DIADEM","#fde047","#854d0e"],["RONBUS","#2dd4bf","#134e4a"]];
@@ -298,380 +112,134 @@
         <path d="M18 40 Q30 12 66 12" stroke="rgba(255,255,255,.6)" stroke-width="3" fill="none" stroke-linecap="round"/>
         <text x="60" y="82" transform="rotate(-90 60 80)" text-anchor="middle" dominant-baseline="middle" font-family="Chakra Petch,sans-serif" font-weight="800" font-size="${fs}" letter-spacing="2" fill="#fff" fill-opacity=".92">${b[0]}</text></svg></div>`}).join('');
     })();
-    // State Store
-    let tourney = {
-      title: '',
-      division: '',
-      matchFormat: 'bestof3',
-      teams: [],
-      rounds: [],
-      activeMatch: null,
-      matchesFinished: 0
-    };
 
-    // Live Scorer In-memory State
-    let liveState = {
-      roundIdx: 0,
-      matchIdx: 0,
-      p1Points: 0,
-      p2Points: 0,
-      p1Sets: 0,
-      p2Sets: 0,
-      setHistory: [],
-      serverTeam: 1, // 1 or 2
-      serverNumber: 1, // 1 or 2
-      targetPoints: 11,
-      maxSetsToWin: 2
-    };
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KEY='picklepro-v2';
+let S={name:'PicklePro Tournament',venue:'',date:'',courts:4,target:11,cats:[],matches:[],tab:'courts',cat:'all',q:'',n:0},cur=null;
+try{const x=JSON.parse(localStorage.getItem(KEY));if(x)S={...S,...x,q:''}}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const go=t=>{S.tab=t;render()};
+const win=m=>m.bye?(m.a||m.b):(m.sa>m.sb?m.a:m.b);
+const lose=m=>m.bye?null:(m.sa>m.sb?m.b:m.a);
+const ok=(a,b)=>a>=S.target&&a-b>=2;
+const empty='<div class="bg-slate-900 rounded-2xl p-8 text-center text-sm text-slate-400">Nothing here yet. Go to ⚙ Setup to create a category and add teams.</div>';
+const fm=()=>S.matches.filter(m=>(S.cat=='all'||m.cat==S.cat)&&(!S.q||((m.a||'')+' '+(m.b||'')).toLowerCase().includes(S.q.toLowerCase())));
+const rdName=n=>n==1?'Final':n==2?'Semifinals':n==4?'Quarterfinals':'Round of '+n*2;
 
-    function generateBracket() {
-      const name = document.getElementById('tourneyName').value.trim() || 'Championship';
-      const division = document.getElementById('division').value;
-      const matchFormat = document.getElementById('matchFormat').value;
-      const raw = document.getElementById('playerList').value.trim().split('\n');
-      const teams = raw.map(t => t.trim()).filter(t => t.length > 0);
-
-      if (teams.length < 2) {
-        alert("Please enter at least 2 teams or players.");
-        return;
-      }
-
-      tourney.title = name;
-      tourney.division = division;
-      tourney.matchFormat = matchFormat;
-      tourney.teams = teams;
-      tourney.matchesFinished = 0;
-
-      // Update Banner
-      document.getElementById('bannerTitle').innerText = name;
-      document.getElementById('bannerDivision').innerText = division;
-      document.getElementById('bannerRules').innerText = matchFormat === 'bestof3' ? 'Best 2 of 3 Games to 11 (Win by 2)' : '1 Game to 15 (Win by 2)';
-      document.getElementById('statusText').innerText = 'Tournament Active';
-      document.getElementById('totalTeamsCount').innerText = teams.length;
-      document.getElementById('completedCount').innerText = '0';
-
-      // Power of 2 logic with Byes (Standard USA Pickleball seeding)
-      let bracketSize = 2;
-      while (bracketSize < teams.length) {
-        bracketSize *= 2;
-      }
-
-      let draw = [...teams];
-      while (draw.length < bracketSize) {
-        draw.push("BYE");
-      }
-
-      tourney.rounds = [];
-      let r1Matches = [];
-      let courtIndex = 1;
-
-      for (let i = 0; i < bracketSize; i += 2) {
-        let t1 = draw[i];
-        let t2 = draw[i + 1];
-        let isBye = (t1 === "BYE" || t2 === "BYE");
-        let winner = null;
-        let sets = [];
-
-        if (t2 === "BYE") { winner = t1; sets = ['W-BYE']; }
-        else if (t1 === "BYE") { winner = t2; sets = ['W-BYE']; }
-
-        r1Matches.push({
-          id: `M1-${(i/2) + 1}`,
-          court: `Court ${courtIndex++}`,
-          team1: t1,
-          team2: t2,
-          winner: winner,
-          setsSummary: sets,
-          status: isBye ? 'COMPLETED' : 'READY',
-          p1Sets: winner === t1 ? 1 : 0,
-          p2Sets: winner === t2 ? 1 : 0
-        });
-      }
-
-      tourney.rounds.push({
-        title: getRoundTitle(bracketSize),
-        matches: r1Matches
-      });
-
-      renderBracket();
-    }
-
-    function getRoundTitle(count) {
-      if (count === 2) return "Gold Medal Final";
-      if (count === 4) return "Semifinals";
-      if (count === 8) return "Quarterfinals";
-      return `Round of ${count}`;
-    }
-
-    function renderBracket() {
-      const container = document.getElementById('bracketView');
-      container.innerHTML = '';
-
-      tourney.rounds.forEach((round, rIdx) => {
-        const roundCard = document.createElement('div');
-        roundCard.className = "space-y-3";
-
-        const titleHeader = document.createElement('div');
-        titleHeader.className = "flex items-center justify-between pb-2 border-b border-slate-800";
-        titleHeader.innerHTML = `
-          <h3 class="text-sm font-extrabold font-display uppercase tracking-wider text-neon-lime flex items-center gap-2">
-            <span>●</span> ${round.title}
-          </h3>
-          <span class="text-xs font-mono text-slate-400">${round.matches.length} Matches</span>
-        `;
-        roundCard.appendChild(titleHeader);
-
-        const grid = document.createElement('div');
-        grid.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
-
-        round.matches.forEach((m, mIdx) => {
-          const isBye = m.team1 === "BYE" || m.team2 === "BYE";
-          const isDone = m.winner !== null;
-
-          const card = document.createElement('div');
-          card.className = `p-4 rounded-2xl border transition ${isDone ? 'bg-slate-900/40 border-slate-800' : 'glass-panel border-slate-700/60 hover:border-slate-500'}`;
-
-          let scoreBadge = '';
-          if (m.setsSummary.length > 0) {
-            scoreBadge = `<div class="flex gap-1.5">${m.setsSummary.map(s => `<span class="px-2 py-0.5 rounded bg-slate-800 text-[11px] font-mono font-bold text-slate-300 border border-slate-700">${s}</span>`).join('')}</div>`;
-          }
-
-          card.innerHTML = `
-            <div class="flex justify-between items-center mb-3 text-[11px] font-mono text-slate-400">
-              <span class="font-bold text-slate-300">${m.court}</span>
-              ${isDone ? `<span class="text-emerald-400 font-bold uppercase tracking-wider">● Finished</span>` : `<span class="text-yellow-400 font-bold uppercase tracking-wider">Scheduled</span>`}
-            </div>
-
-            <!-- TEAMS CONTAINER -->
-            <div class="space-y-2 mb-3">
-              <!-- Team 1 -->
-              <div class="flex justify-between items-center p-2.5 rounded-xl ${m.winner === m.team1 && isDone ? 'bg-emerald-500/10 border border-emerald-500/40 text-emerald-300' : 'bg-slate-900/60 text-slate-200'}">
-                <span class="text-xs font-bold ${m.team1 === 'BYE' ? 'text-slate-500 italic' : ''}">${m.team1}</span>
-                ${m.winner === m.team1 ? '<span class="text-xs font-bold text-emerald-400 font-mono">WINNER</span>' : ''}
-              </div>
-
-              <!-- Team 2 -->
-              <div class="flex justify-between items-center p-2.5 rounded-xl ${m.winner === m.team2 && isDone ? 'bg-emerald-500/10 border border-emerald-500/40 text-emerald-300' : 'bg-slate-900/60 text-slate-200'}">
-                <span class="text-xs font-bold ${m.team2 === 'BYE' ? 'text-slate-500 italic' : ''}">${m.team2}</span>
-                ${m.winner === m.team2 ? '<span class="text-xs font-bold text-emerald-400 font-mono">WINNER</span>' : ''}
-              </div>
-            </div>
-
-            <!-- SCORE ROW OR ACTION -->
-            <div class="flex justify-between items-center pt-2 border-t border-slate-800/80">
-              ${scoreBadge || '<span class="text-[11px] text-slate-500 font-mono">No score yet</span>'}
-              ${!isDone && !isBye ? `
-                <button onclick="launchScorer(${rIdx}, ${mIdx})" class="px-3 py-1.5 rounded-lg bg-neon-lime hover:brightness-110 text-slate-950 text-xs font-extrabold uppercase tracking-wider font-display flex items-center gap-1.5 transition">
-                  <span>⚡</span> Live Scorer
-                </button>
-              ` : ''}
-            </div>
-          `;
-
-          grid.appendChild(card);
-        });
-
-        roundCard.appendChild(grid);
-        container.appendChild(roundCard);
-      });
-
-      // Check Tournament Champion
-      const finalRound = tourney.rounds[tourney.rounds.length - 1];
-      if (finalRound && finalRound.matches.length === 1 && finalRound.matches[0].winner) {
-        showTrophyCelebration(finalRound.matches[0].winner);
-      }
-    }
-
-    // OPEN LIVE SCOREBOARD
-    function launchScorer(rIdx, mIdx) {
-      const match = tourney.rounds[rIdx].matches[mIdx];
-      liveState.roundIdx = rIdx;
-      liveState.matchIdx = mIdx;
-      liveState.p1Points = 0;
-      liveState.p2Points = 0;
-      liveState.p1Sets = 0;
-      liveState.p2Sets = 0;
-      liveState.setHistory = [];
-      liveState.serverTeam = 1;
-      liveState.serverNumber = 1;
-
-      // Rules Setup
-      liveState.targetPoints = tourney.matchFormat === 'bestof3' ? 11 : 15;
-      liveState.maxSetsToWin = tourney.matchFormat === 'bestof3' ? 2 : 1;
-
-      document.getElementById('t1Name').innerText = match.team1;
-      document.getElementById('t2Name').innerText = match.team2;
-      document.getElementById('modalCourtTag').innerText = `${match.court} • Official Draw`;
-
-      updateScoreDisplay();
-      document.getElementById('scoreModal').classList.remove('hidden');
-    }
-
-    function closeScorer() {
-      document.getElementById('scoreModal').classList.add('hidden');
-    }
-
-    function updatePoints(team, delta) {
-      if (team === 1) {
-        liveState.p1Points = Math.max(0, liveState.p1Points + delta);
-      } else {
-        liveState.p2Points = Math.max(0, liveState.p2Points + delta);
-      }
-      updateScoreDisplay();
-    }
-
-    function toggleSideOut() {
-      // Rotate Server 1 -> Server 2 -> Side Out
-      if (liveState.serverNumber === 1) {
-        liveState.serverNumber = 2;
-      } else {
-        liveState.serverNumber = 1;
-        liveState.serverTeam = liveState.serverTeam === 1 ? 2 : 1;
-      }
-      updateScoreDisplay();
-    }
-
-    function updateScoreDisplay() {
-      document.getElementById('t1Score').innerText = liveState.p1Points;
-      document.getElementById('t2Score').innerText = liveState.p2Points;
-
-      // Serving badges
-      const s1 = document.getElementById('servePill1');
-      const s2 = document.getElementById('servePill2');
-      if (liveState.serverTeam === 1) {
-        s1.classList.remove('hidden');
-        s1.innerText = `SERVING • #${liveState.serverNumber}`;
-        s2.classList.add('hidden');
-      } else {
-        s2.classList.remove('hidden');
-        s2.innerText = `SERVING • #${liveState.serverNumber}`;
-        s1.classList.add('hidden');
-      }
-
-      document.getElementById('servingStateBadge').innerText = 
-        `Team ${liveState.serverTeam} (Server ${liveState.serverNumber})`;
-
-      // Sets History display
-      const currentSetNum = liveState.p1Sets + liveState.p2Sets + 1;
-      document.getElementById('modalGameLabel').innerText = `Game ${currentSetNum} of ${liveState.maxSetsToWin === 1 ? 1 : 3}`;
-
-      const historyBox = document.getElementById('setHistoryPills');
-      historyBox.innerHTML = liveState.setHistory.map((s, idx) => `
-        <span class="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 font-mono font-bold border border-slate-700">
-          Game ${idx+1}: ${s}
-        </span>
-      `).join('');
-
-      // Check Win Condition (Win by 2 rule)
-      const p1 = liveState.p1Points;
-      const p2 = liveState.p2Points;
-      const target = liveState.targetPoints;
-      const finishBtn = document.getElementById('finishGameBtn');
-
-      const isP1Win = p1 >= target && (p1 - p2 >= 2);
-      const isP2Win = p2 >= target && (p2 - p1 >= 2);
-
-      if (isP1Win || isP2Win) {
-        const winnerName = isP1Win ? document.getElementById('t1Name').innerText : document.getElementById('t2Name').innerText;
-        finishBtn.className = "w-full py-3.5 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black uppercase tracking-wider rounded-xl transition cursor-pointer font-display shadow-lg shadow-emerald-400/20";
-        finishBtn.innerText = `✓ Confirm Game Win (${winnerName})`;
-        finishBtn.disabled = false;
-      } else {
-        finishBtn.className = "w-full py-3.5 bg-slate-800 text-slate-500 font-bold uppercase tracking-wider rounded-xl transition cursor-not-allowed";
-        finishBtn.innerText = `Game In Progress (${p1}-${p2} • Must Win by 2)`;
-        finishBtn.disabled = true;
-      }
-    }
-
-    function confirmSetWinner() {
-      const p1 = liveState.p1Points;
-      const p2 = liveState.p2Points;
-      
-      const gameScoreString = `${p1}-${p2}`;
-      liveState.setHistory.push(gameScoreString);
-
-      if (p1 > p2) {
-        liveState.p1Sets++;
-      } else {
-        liveState.p2Sets++;
-      }
-
-      // Check if Match is completely finished
-      if (liveState.p1Sets === liveState.maxSetsToWin || liveState.p2Sets === liveState.maxSetsToWin) {
-        finalizeMatch();
-      } else {
-        // Reset points for Next Game / Set
-        liveState.p1Points = 0;
-        liveState.p2Points = 0;
-        liveState.serverTeam = 1;
-        liveState.serverNumber = 1;
-        updateScoreDisplay();
-      }
-    }
-
-    function finalizeMatch() {
-      const match = tourney.rounds[liveState.roundIdx].matches[liveState.matchIdx];
-      const winnerName = liveState.p1Sets > liveState.p2Sets ? match.team1 : match.team2;
-      
-      match.winner = winnerName;
-      match.setsSummary = [...liveState.setHistory];
-      match.status = 'COMPLETED';
-
-      tourney.matchesFinished++;
-      document.getElementById('completedCount').innerText = tourney.matchesFinished;
-
-      closeScorer();
-
-      // Check if current round is complete to generate next round
-      checkAndAdvanceRound(liveState.roundIdx);
-      renderBracket();
-    }
-
-    function checkAndAdvanceRound(rIdx) {
-      const currentMatches = tourney.rounds[rIdx].matches;
-      const allDone = currentMatches.every(m => m.winner !== null);
-
-      if (allDone && currentMatches.length > 1) {
-        let nextMatches = [];
-        let courtIdx = 1;
-
-        for (let i = 0; i < currentMatches.length; i += 2) {
-          nextMatches.push({
-            id: `M${rIdx + 2}-${(i/2) + 1}`,
-            court: `Championship Court ${courtIdx++}`,
-            team1: currentMatches[i].winner,
-            team2: currentMatches[i + 1].winner,
-            winner: null,
-            setsSummary: [],
-            status: 'READY'
-          });
-        }
-
-        tourney.rounds.push({
-          title: getRoundTitle(nextMatches.length * 2),
-          matches: nextMatches
-        });
-      }
-    }
-
-    function showTrophyCelebration(winner) {
-      const container = document.getElementById('bracketView');
-      const banner = document.createElement('div');
-      banner.className = "bg-gradient-to-r from-yellow-500 via-amber-400 to-yellow-600 text-slate-950 p-8 rounded-3xl text-center shadow-2xl border-4 border-yellow-300/40 my-4 animate-in zoom-in duration-300";
-      banner.innerHTML = `
-        <div class="text-5xl mb-2">🏆</div>
-        <span class="text-xs font-black uppercase tracking-widest font-mono bg-slate-950 text-yellow-400 px-3 py-1 rounded-full">Official Champion</span>
-        <h2 class="text-3xl md:text-5xl font-black font-display uppercase tracking-tight mt-3 text-slate-950">${winner}</h2>
-        <p class="text-xs font-extrabold uppercase tracking-wider text-slate-900 mt-2">Winner of the ${tourney.title} (${tourney.division})</p>
-      `;
-      container.prepend(banner);
-    }
-
-    function resetTournament() {
-      if (confirm("Reset current tournament draw and all scores?")) {
-        location.reload();
-      }
-    }
-  </script>
+function table(c,pi){
+  const r=c.pools[pi].map(t=>({t,mp:0,w:0,l:0,pf:0,pa:0}));
+  S.matches.filter(m=>m.cat==c.id&&m.st=='pool'&&m.pl==pi&&m.state=='final').forEach(m=>{
+    const A=r.find(x=>x.t==m.a),B=r.find(x=>x.t==m.b);A.mp++;B.mp++;A.pf+=m.sa;A.pa+=m.sb;B.pf+=m.sb;B.pa+=m.sa;
+    if(m.sa>m.sb){A.w++;B.l++}else{B.w++;A.l++}});
+  return r.sort((x,y)=>y.w-x.w||(y.pf-y.pa)-(x.pf-x.pa)||y.pf-x.pf);
+}
+function mk(c,o){const no=S.matches.filter(m=>m.cat==c.id&&m.rd==o.rd).length+1;
+  S.matches.push({id:'m'+(++S.n),cat:c.id,sa:0,sb:0,state:'sched',no,court:(S.n%S.courts)+1,...o});}
+function adv(c){
+  const pm=S.matches.filter(m=>m.cat==c.id&&m.st=='pool');
+  if(!pm.length||!pm.every(m=>m.state=='final'))return;
+  const km=S.matches.filter(m=>m.cat==c.id&&m.st=='ko');let pairs=[];
+  if(!km.length){
+    const q=c.pools.map((_,i)=>table(c,i).slice(0,c.adv).map(x=>x.t)),seeds=[];
+    for(let k=0;k<c.adv;k++)q.forEach(p=>p[k]&&seeds.push(p[k]));
+    if(seeds.length<2)return;
+    let size=2;while(size<seeds.length)size*=2;
+    const arr=[...seeds];while(arr.length<size)arr.push(null);
+    for(let i=0;i<size/2;i++)pairs.push([arr[i],arr[size-1-i]]);
+  }else{
+    const last=Math.max(...km.map(m=>m.rn)),lm=km.filter(m=>m.rn==last);
+    if(lm.length<2||!lm.every(m=>m.state=='final'))return;
+    for(let i=0;i<lm.length;i+=2)pairs.push([win(lm[i]),win(lm[i+1])]);
+  }
+  const rn=km.length?Math.max(...km.map(m=>m.rn))+1:1;
+  pairs.forEach(([a,b])=>mk(c,{st:'ko',rn,rd:rdName(pairs.length),a,b,...(!a||!b?{bye:true,state:'final'}:{})}));
+  adv(c);
+}
+function mCard(m){
+  const w=m.state=='final'?(m.bye?(m.a?'a':'b'):(m.sa>m.sb?'a':'b')):'';
+  const row=(k,n,s)=>`<div class="flex justify-between items-center py-2 border-t border-slate-800 ${w==k?'neon-lime font-bold':''}"><span class="text-sm">${n?esc(n):'<i class="text-slate-500">BYE</i>'} ${w==k&&!m.bye?'🏆':''}</span><span class="font-display text-xl">${m.bye?'':s}</span></div>`;
+  const lab=m.state=='final'?'FINAL':m.state=='live'?'<span class="text-emerald-400">● LIVE</span>':'SCHEDULED';
+  return `<div class="bg-slate-900 rounded-2xl p-3 mb-3 border border-slate-800"><div class="flex justify-between text-[11px] font-mono text-slate-400"><span>MATCH ${m.no} · COURT ${m.court}</span><span>${lab}</span></div>${row('a',m.a,m.sa)}${row('b',m.b,m.sb)}${m.bye?'':`<button onclick="openS('${m.id}')" class="mt-2 w-full text-xs font-bold py-2 rounded-xl bg-neon-lime text-slate-950">${m.state=='final'?'Edit score':'⚡ Live Score'}</button>`}</div>`;
+}
+function grp(list){
+  return S.cats.filter(c=>list.some(m=>m.cat==c.id)).map(c=>{
+    const ms=list.filter(m=>m.cat==c.id),rds=[...new Set(ms.map(m=>m.rd))];
+    return `<h2 class="font-display font-bold text-xl mt-5">${esc(c.name)}</h2>`+rds.map(r=>`<div class="text-xs font-mono neon-lime tracking-widest my-2">${esc(r).toUpperCase()}</div>`+ms.filter(m=>m.rd==r).map(mCard).join('')).join('');
+  }).join('')||empty;
+}
+function vCourts(){
+  let h=`<div class="flex justify-between items-end mb-2"><h2 class="font-display text-2xl font-bold">Courts</h2><span class="text-xs text-slate-400">${S.courts} courts</span></div>`;
+  for(let k=1;k<=S.courts;k++){
+    const live=S.matches.find(m=>m.court==k&&m.state=='live'),nx=S.matches.find(m=>m.court==k&&m.state=='sched'&&!m.bye);
+    const cn=m=>esc(S.cats.find(c=>c.id==m.cat)?.name||'');
+    h+=`<div class="bg-slate-900 rounded-2xl p-4 mb-3 border ${live?'border-lime-300/60':'border-slate-800'}"><div class="flex justify-between"><b class="font-display text-lg">Court ${k}</b><span class="text-[11px] font-mono ${live?'text-emerald-400':'text-slate-400'}">${live?'● IN PLAY':'AVAILABLE'}</span></div>`+
+    (live?`<div class="text-[11px] text-slate-400 mt-1">${cn(live)} · ${esc(live.rd)}</div><div class="flex justify-between mt-2 text-sm"><span>${esc(live.a)}</span><b class="font-display text-xl neon-lime">${live.sa}</b></div><div class="flex justify-between text-sm"><span>${esc(live.b)}</span><b class="font-display text-xl neon-lime">${live.sb}</b></div><button onclick="openS('${live.id}')" class="mt-3 w-full text-xs font-bold py-2 rounded-xl bg-neon-lime text-slate-950">Update score</button>`
+    :nx?`<div class="text-sm text-slate-300 mt-2">Up next: ${esc(nx.a)} vs ${esc(nx.b)}</div><button onclick="openS('${nx.id}')" class="mt-3 w-full text-xs font-bold py-2 rounded-xl bg-slate-800">Start match</button>`:`<div class="text-slate-400 mt-2">Open court</div>`)+`</div>`;
+  }
+  return h;
+}
+const vMatches=()=>grp(fm());
+function vStand(){
+  const qq=S.q.toLowerCase();
+  return S.cats.filter(c=>S.cat=='all'||c.id==S.cat).map(c=>c.pools.map((p,i)=>{
+    const t=table(c,i),done=S.matches.filter(m=>m.cat==c.id&&m.st=='pool'&&m.pl==i).every(m=>m.state=='final');
+    return `<div class="bg-slate-900 rounded-2xl p-3 mb-4 border border-slate-800"><div class="text-[11px] font-mono neon-lime">${esc(c.name).toUpperCase()} · QUALIFYING</div><div class="font-display text-xl mb-2">${c.pools.length>1?'Bracket '+'ABCDEFGH'[i]:'Pool'}</div><div class="overflow-x-auto"><table class="w-full text-xs"><tr class="text-slate-400 text-left"><th>#</th><th>TEAM</th><th>MP</th><th>W</th><th>L</th><th>PF</th><th>PA</th></tr>`+
+    t.map((r,k)=>({r,k})).filter(({r})=>!qq||r.t.toLowerCase().includes(qq)).map(({r,k})=>`<tr class="border-t border-slate-800 ${k<c.adv?'bg-lime-300/10':''}"><td class="py-2 pr-1">${k+1}</td><td>${esc(r.t)}${done&&k<c.adv?' <span class="text-[10px] neon-lime font-mono">QUALIFIED</span>':''}</td><td>${r.mp}</td><td>${r.w}</td><td>${r.l}</td><td>${r.pf}</td><td>${r.pa}</td></tr>`).join('')+`</table></div><div class="text-[10px] font-mono text-slate-500 mt-2">TOP ${c.adv} ADVANCE · TIEBREAK: WINS, THEN POINT DIFFERENTIAL</div></div>`;
+  }).join('')).join('')||empty;
+}
+function medals(c){
+  const k=S.matches.filter(m=>m.cat==c.id&&m.st=='ko');
+  if(!k.length)return '<div class="text-xs text-slate-400 my-3">Medal rounds start once all qualifying matches are finished.</div>';
+  const mx=Math.max(...k.map(m=>m.rn)),top=k.filter(m=>m.rn==mx),f=top.length==1&&top[0].state=='final'?top[0]:null;
+  const sl=k.filter(m=>m.rd=='Semifinals'&&m.state=='final'&&!m.bye).map(lose);
+  const box=(l,n,g)=>`<div class="rounded-2xl p-3 border ${g?'border-lime-300/60 bg-lime-300/10':'border-slate-800 bg-slate-900'}"><div class="text-[11px] font-mono text-slate-400">${l}</div><div class="font-bold text-sm mt-1">${n?(g?'🏆 ':'')+esc(n):'—'}</div></div>`;
+  return `<div class="grid grid-cols-2 gap-3 my-3">${box('CHAMPION',f&&win(f),1)}${box('1ST RUNNER-UP',f&&lose(f))}${box('2ND RUNNER-UP',sl[0])}${box('3RD RUNNER-UP',sl[1])}</div>`;
+}
+function vMedal(){
+  const cs=S.cats.filter(c=>S.cat=='all'||c.id==S.cat);
+  return cs.map(c=>`<div class="text-xs font-mono neon-lime tracking-widest mt-4">MEDAL ROUNDS</div><h2 class="font-display font-bold text-2xl">${esc(c.name)}</h2>`+medals(c)+grp(fm().filter(m=>m.st=='ko'&&m.cat==c.id)).replace(empty,'')).join('')||empty;
+}
+function vSetup(){
+  const i=(id,l,v,t='text')=>`<label class="block text-[11px] font-mono text-slate-400 mt-3 mb-1">${l}</label><input id="${id}" type="${t}" value="${esc(v)}" class="w-full rounded-xl px-3 py-2 text-sm border">`;
+  return `<div class="bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-800"><h2 class="font-display font-bold text-lg">Event details</h2>${i('en','EVENT NAME',S.name)}${i('ev','VENUE',S.venue)}${i('ed','DATE',S.date)}${i('ec','NUMBER OF COURTS',S.courts,'number')}${i('et','POINTS TO WIN (win by 2)',S.target,'number')}<button onclick="saveEvt()" class="mt-4 w-full py-2.5 rounded-xl bg-slate-800 font-bold text-sm">Save event</button></div>
+  <div class="bg-slate-900 rounded-2xl p-4 mb-4 border border-slate-800"><h2 class="font-display font-bold text-lg">Add category</h2>${i('cn','CATEGORY NAME','',"text")}<label class="block text-[11px] font-mono text-slate-400 mt-3 mb-1">TEAMS (1 per line)</label><textarea id="ct" rows="6" placeholder="Juan Dela Cruz &amp; Pedro Santos" class="w-full rounded-xl px-3 py-2 text-sm border"></textarea><div class="grid grid-cols-2 gap-3">${i('cp','QUALIFYING BRACKETS',2,'number')}${i('ca','TOP ADVANCE PER BRACKET',2,'number')}</div><button onclick="gen()" class="mt-4 w-full py-3 rounded-xl bg-neon-lime text-slate-950 font-extrabold font-display uppercase">⚡ Generate matches</button></div>
+  <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800"><h2 class="font-display font-bold text-lg mb-2">Categories</h2>${S.cats.map(c=>`<div class="flex justify-between items-center py-2 border-t border-slate-800 text-sm"><span>${esc(c.name)}</span><button onclick="delCat('${c.id}')" class="text-rose-400 text-xs">Delete</button></div>`).join('')||'<div class="text-xs text-slate-400">None yet.</div>'}<button onclick="resetAll()" class="mt-3 w-full py-2 rounded-xl border border-rose-500/40 text-rose-400 text-xs font-bold">Reset everything</button></div>`;
+}
+function saveEvt(){S.name=$('en').value||'Tournament';S.venue=$('ev').value;S.date=$('ed').value;S.courts=Math.max(1,+$('ec').value||4);S.target=Math.max(1,+$('et').value||11);render();}
+function gen(){
+  const name=$('cn').value.trim(),teams=$('ct').value.split('\n').map(x=>x.trim()).filter(Boolean);
+  if(!name||teams.length<2){alert('Enter a category name and at least 2 teams.');return}
+  const np=Math.max(1,Math.min(+$('cp').value||1,Math.floor(teams.length/2))),adv=Math.max(1,+$('ca').value||2);
+  const c={id:'c'+(++S.n),name,adv,pools:Array.from({length:np},()=>[])};
+  teams.forEach((t,k)=>{const r=Math.floor(k/np),col=k%np;c.pools[r%2?np-1-col:col].push(t)});
+  S.cats.push(c);
+  c.pools.forEach((p,pi)=>{for(let x=0;x<p.length;x++)for(let y=x+1;y<p.length;y++)mk(c,{st:'pool',pl:pi,rd:np>1?'Bracket '+'ABCDEFGH'[pi]:'Pool',a:p[x],b:p[y]})});
+  S.cat=c.id;S.tab='matches';render();
+}
+function delCat(id){if(confirm('Delete this category and all of its matches?')){S.cats=S.cats.filter(c=>c.id!=id);S.matches=S.matches.filter(m=>m.cat!=id);S.cat='all';render()}}
+function resetAll(){if(confirm('Delete ALL data?')){localStorage.removeItem(KEY);location.reload()}}
+function openS(id){cur=S.matches.find(m=>m.id==id);if(cur.state=='sched')cur.state='live';drawS();$('sm').style.display='flex';render();}
+function closeS(){$('sm').style.display='none';cur=null}
+function pt(t,d){if(!cur)return;cur['s'+t]=Math.max(0,cur['s'+t]+d);drawS();render();}
+function drawS(){
+  $('sT').textContent=`${S.cats.find(c=>c.id==cur.cat)?.name||''} · ${cur.rd} · COURT ${cur.court}`;
+  $('sNa').textContent=cur.a;$('sNb').textContent=cur.b;$('sA').textContent=cur.sa;$('sB').textContent=cur.sb;
+  const f=$('sF'),w=ok(cur.sa,cur.sb)||ok(cur.sb,cur.sa);
+  f.disabled=!w;f.className='w-full mt-4 py-3 rounded-xl font-extrabold uppercase '+(w?'bg-emerald-400 text-slate-950':'bg-slate-800 text-slate-500');
+  f.textContent=w?'✓ Confirm final score':`Playing to ${S.target}, win by 2`;
+}
+function fin(){if(!cur||!(ok(cur.sa,cur.sb)||ok(cur.sb,cur.sa)))return;cur.state='final';adv(S.cats.find(c=>c.id==cur.cat));closeS();render();}
+function render(){
+  $('hn').textContent=S.name;$('hv').textContent=[S.venue,S.date].filter(Boolean).join(' · ')||'Set your event details in ⚙ Setup';
+  const real=S.matches.filter(m=>!m.bye),done=real.filter(m=>m.state=='final').length;
+  $('hs').innerHTML=`<b class="neon-lime text-xl">${S.cats.length}</b> CATEGORIES<br><b class="neon-lime text-xl">${real.length?Math.round(done/real.length*100):0}%</b> PROGRESS`;
+  $('cs').innerHTML='<option value="all">All categories</option>'+S.cats.map(c=>`<option value="${c.id}" ${S.cat==c.id?'selected':''}>${esc(c.name)}</option>`).join('');
+  $('view').innerHTML=({courts:vCourts,matches:vMatches,stand:vStand,medal:vMedal,setup:vSetup})[S.tab]();
+  document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t==S.tab));
+  save();
+}
+render();
+</script>
 </body>
 </html>
